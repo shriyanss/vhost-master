@@ -1,6 +1,9 @@
 import socket
 import sys
 import argparse
+import requests
+
+version = "0.0.1"
 
 def get_ip_address(host):
     try:
@@ -28,6 +31,23 @@ def print_output(multiple_hostnames_ips, silent):
         for ip_dict in multiple_hostnames_ips:
             print(list(ip_dict.keys())[0])
 
+def banner():
+    latest_version = requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version").text
+    # https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version
+    if latest_version != version:
+        status = f"Outdated. Latest: {latest_version}"
+    else:
+        status = "Latest"
+    print(f"""__     ___   _           _        __  __           _            
+\ \   / / | | | ___  ___| |_     |  \/  | __ _ ___| |_ ___ _ __ 
+ \ \ / /| |_| |/ _ \/ __| __|____| |\/| |/ _` / __| __/ _ \ '__|
+  \ V / |  _  | (_) \__ \ ||_____| |  | | (_| \__ \ ||  __/ |   
+   \_/  |_| |_|\___/|___/\__|    |_|  |_|\__,_|___/\__\___|_|   \n
+
+By @shriyanss: https://github.com/shriyanss
+{version} ({status})
+""")
+
 def main():
     # argparser
     parser = argparse.ArgumentParser()
@@ -35,6 +55,10 @@ def main():
     parser.add_argument('-s', '--silent', action='store_true', help='Silent mode (boolean flag)')
     args = parser.parse_args()
     targets = None
+
+    # print banner if not silent
+    if not args.silent:
+        banner()
 
     if not sys.stdin.isatty():
         # Read from pipe
