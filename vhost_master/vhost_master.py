@@ -32,7 +32,7 @@ def print_output(multiple_hostnames_ips, silent):
             print(list(ip_dict.keys())[0])
 
 def banner():
-    latest_version = requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version").text
+    latest_version = requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version").text.replace('\n, '')
     # https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version
     if latest_version != version:
         status = f"Outdated. Latest: {latest_version}"
