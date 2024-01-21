@@ -4,6 +4,9 @@ Command line utility to hunt for Virtual Hosts
 ## Table of contents
 - [Features](#features)
 - [Installation](#installation)
+    - [Using `pip` (recommeded)](#using-pip-recommeded)
+    - [Manually using source](#manually-using-source)
+- [Upgrade the tool](#upgrade-the-tool)
 - [Usage](#usage)
 - [Example](#example)
 - [Social Links](#social-links)
@@ -45,6 +48,12 @@ sudo python3 setup.py install
 ```
 
 **NOTE: If you install directly from `git clone`, you might encounter some errors. So, consider installing from [releases](https://github.com/shriyanss/vhost-master/releases) instead**
+
+## Upgrade the tool
+If you see a message that says that the tool is outdated, you can simply upgrade it using `pip`:-
+```
+pip3 install vhost-master --upgrade
+```
 
 ## Usage
 ```
