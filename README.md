@@ -1,4 +1,4 @@
-# vhost_master v0.0.2
+# vhost_master v0.0.3
 Command line utility to hunt for Virtual Hosts
 
 ## Table of contents
@@ -16,7 +16,7 @@ Command line utility to hunt for Virtual Hosts
 
 **Upcoming features:-**
 1. Generate output (plain text, JSON, html)
-1. Bruteforce VHosts as per user specifies input
+1. Bruteforce VHosts as per user specified input
 1. Generate wordlists
 1. Analyze responses to make bruteforcing VHosts easier
 
