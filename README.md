@@ -20,6 +20,20 @@ Command line utility to hunt for Virtual Hosts
 ## Installation
 The tool can be installed with the following command:-
 
+### Using `pip` (recommeded)
+You can install this tool by simply running the following command:-
+```
+pip3 install vhost-master
+```
+OR
+```
+python3 -m pip install vhost-master
+```
+
+### Manually using source
+Download and extract files from one of the releases from https://github.com/shriyanss/vhost-master/releases. Then,
+
+
 **Install for current user:-**
 ```
 python3 setup.py install --user
@@ -29,6 +43,8 @@ python3 setup.py install --user
 ```
 sudo python3 setup.py install
 ```
+
+**NOTE: If you install directly from `git clone`, you might encounter some errors. So, consider installing from [releases](https://github.com/shriyanss/vhost-master/releases) instead**
 
 ## Usage
 ```
