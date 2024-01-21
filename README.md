@@ -1,4 +1,4 @@
-# vhost_master v0.0.1
+# vhost_master v0.0.2
 Command line utility to hunt for Virtual Hosts
 
 ## Table of contents
@@ -9,7 +9,7 @@ Command line utility to hunt for Virtual Hosts
 - [Social Links](#social-links)
 
 ## Features
-1. Get the list of IP addresses having different hostnames (*v0.0.1 onwards*)
+1. Get the list of IP addresses having different hostnames (*v0.0.2 onwards*)
 
 **Upcoming features:-**
 1. Generate output (plain text, JSON, html)

@@ -3,7 +3,7 @@ import sys
 import argparse
 import requests
 
-version = "0.0.1"
+version = "0.0.2"
 
 def get_ip_address(host):
     try:
