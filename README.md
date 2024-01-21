@@ -9,7 +9,7 @@ Command line utility to hunt for Virtual Hosts
 - [Social Links](#social-links)
 
 ## Features
-1. Get the list of IP addresses having different hostnames (*v0.0.2 onwards*)
+1. Get the list of IP addresses having different hostnames (*v0.0.1 onwards*)
 
 **Upcoming features:-**
 1. Generate output (plain text, JSON, html)
