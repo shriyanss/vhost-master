@@ -112,6 +112,7 @@ def main():
     # argparser
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--resolver-runs', type=int, default=10, help='Number of times to run the resolver to increase the accuracy of the output (default=10)')
     parser.add_argument('-s', '--silent', action='store_true', help='Silent mode (boolean flag)')
     parser.add_argument('-b', '--bruteforce', action="store_true", help='Bruteforce using the given wordlist', default=False)
     parser.add_argument('-c', '--conditions', type=str, help='Conditions to consider if a valid VHost exists. See https://github.com/shriyanss/vhost-master/match_conditions.md', default="status!=404")
@@ -173,32 +174,38 @@ def main():
     ip_info = {}
     threads = []
     ip_resolver = IPResolve()
-    # loop through hostnames
-    for hostname in targets:
-        # IPResolve.resolve(hostname)
-        thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
-        thread.start()
-        threads.append(thread)
 
-        # Wait for the number of active threads to be less than the maximum allowed threads
-        while threading.active_count() > args.threads:
-            pass
-        # thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
-        # thread.start()
-        # while True:
-        #     if threading.active_count() > args.threads:
-        #         pass
-        #     else:
-        #         threads.append(thread)
-        #         break
-        # ip = get_ip_address(hostname)
-        # try:
-        #     ip_info[ip].append(hostname) if ip is not None else None
-        # except:
-        #     ip_info[ip] = []
-        #     ip_info[ip].append(hostname) if ip is not None else None
+    for i in range(args.resolver_runs):
+    # loop through hostnames
+        for hostname in targets:
+            # IPResolve.resolve(hostname)
+            thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
+            thread.start()
+            threads.append(thread)
+
+            # Wait for the number of active threads to be less than the maximum allowed threads
+            while threading.active_count() > args.threads:
+                pass
+            # thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
+            # thread.start()
+            # while True:
+            #     if threading.active_count() > args.threads:
+            #         pass
+            #     else:
+            #         threads.append(thread)
+            #         break
+            # ip = get_ip_address(hostname)
+            # try:
+            #     ip_info[ip].append(hostname) if ip is not None else None
+            # except:
+            #     ip_info[ip] = []
+            #     ip_info[ip].append(hostname) if ip is not None else None
+        
+        # get the IP addresses who have more than 1 hostname
     
-    # get the IP addresses who have more than 1 hostname
+    for thread in threads:
+        thread.join()
+
     multiple_hostnames_ips = []
     for key in ip_info:
         if len(ip_info[key]) > 1:
