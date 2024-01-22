@@ -21,6 +21,8 @@ Command line utility to hunt for Virtual Hosts
 1. Generate wordlists
 1. Analyze responses to make bruteforcing VHosts easier
 
+Other features requested can be found on the [issues tab](https://github.com/shriyanss/vhost-master/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement)
+
 ## Installation
 The tool can be installed with the following command:-
 
