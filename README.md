@@ -56,7 +56,7 @@ cat subdomains.txt | python3 vhost_master-runner.py
 
 All the options remains the same
 
-**NOTE: If you install directly from `git clone`, you might encounter some errors. So, consider installing from [releases](https://github.com/shriyanss/vhost-master/releases) instead**
+<!-- **NOTE: If you install directly from `git clone`, you might encounter some errors. So, consider installing from [releases](https://github.com/shriyanss/vhost-master/releases) instead** -->
 
 ## Upgrade the tool
 If you see a message that says that the tool is outdated, you can simply upgrade it using `pip`:-
