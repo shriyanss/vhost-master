@@ -12,7 +12,7 @@ If you want the same feature, please react with 👍
 Please don't comment "I want this too.." or "Me too..."
 
 <!-- Thanks for keeping the message -->
-<-- Also, make sure you've searched for the same feature on other issues as well -->
+<!-- Also, make sure you've searched for the same feature on other issues as well -->
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
