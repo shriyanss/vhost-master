@@ -33,7 +33,11 @@ class BruteForcer:
         with open(self.wordlist, 'r') as file:
             for line in file:
                 line = line.replace('\n', '')
-                vhost = f"{line}.{self.domain}"
+
+                if absolute_wordlist == True:
+                    vhost = line
+                else:
+                    vhost = f"{line}.{self.domain}"
 
                 # wait for active thread count to be less than max_threads
                 while True:
@@ -101,6 +105,7 @@ def main():
     parser.add_argument('-b', '--bruteforce', action="store_true", help='Bruteforce using the given wordlist', default=False)
     parser.add_argument('-c', '--conditions', type=str, help='Conditions to consider if a valid VHost exists. See https://github.com/shriyanss/vhost-master/match_conditions.md', default="status!=404")
     parser.add_argument('-w', '--wordlist', type=str, help='Wordlist to use (required with -b/--bruteforce)')
+    parser.add_argument('--absolute-wordlist', action="store_true", help='Absolute values given in the wordlist', default=False)
     parser.add_argument('-t', "--threads", type=int, help='Number of threads (default=30)', default=30)
     parser.add_argument('-p', '--protocol', type=str, help='Protocol to use (default="http:80,https:443"', default="http:80,https:443")
     parser.add_argument('--force-all-ports', action="store_true", default=False, help='If both http:80 & https:443 are open, tool will skip http:80 and show results for https:443. Use this flag to disable it')
@@ -112,6 +117,9 @@ def main():
 
     global conditions
     conditions = ((args.conditions).replace(' ', '')).split(',')
+
+    global absolute_wordlist
+    absolute_wordlist = args.absolute_wordlist
 
     # print banner if not silent
     if not args.silent:
