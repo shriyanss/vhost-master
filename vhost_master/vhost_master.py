@@ -51,6 +51,17 @@ class BruteForcer:
         for thread in threads:
             thread.join()
 
+class IPResolve():
+    def __init__(self):
+        pass
+    def resolve(self, hostname):
+        ip = get_ip_address(hostname)
+        try:
+            ip_info[ip].append(hostname) if ip is not None else None
+        except:
+            ip_info[ip] = []
+            ip_info[ip].append(hostname) if ip is not None else None
+
 version = "0.0.3"
 
 def get_ip_address(host):
@@ -149,8 +160,8 @@ def main():
                 print("Wordlist doesn't exist: " + args.wordlist)
                 exit(1)
 
+    # read data from pipe
     if not sys.stdin.isatty():
-        # Read from pipe
         pipe_data = sys.stdin.read()
         targets = process_pipe(pipe_data)
     if targets == None:
@@ -158,15 +169,34 @@ def main():
         exit(1)
     
     # get the IP addresses
+    global ip_info
     ip_info = {}
+    threads = []
+    ip_resolver = IPResolve()
     # loop through hostnames
     for hostname in targets:
-        ip = get_ip_address(hostname)
-        try:
-            ip_info[ip].append(hostname) if ip is not None else None
-        except:
-            ip_info[ip] = []
-            ip_info[ip].append(hostname) if ip is not None else None
+        # IPResolve.resolve(hostname)
+        thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
+        thread.start()
+        threads.append(thread)
+
+        # Wait for the number of active threads to be less than the maximum allowed threads
+        while threading.active_count() > args.threads:
+            pass
+        # thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
+        # thread.start()
+        # while True:
+        #     if threading.active_count() > args.threads:
+        #         pass
+        #     else:
+        #         threads.append(thread)
+        #         break
+        # ip = get_ip_address(hostname)
+        # try:
+        #     ip_info[ip].append(hostname) if ip is not None else None
+        # except:
+        #     ip_info[ip] = []
+        #     ip_info[ip].append(hostname) if ip is not None else None
     
     # get the IP addresses who have more than 1 hostname
     multiple_hostnames_ips = []
