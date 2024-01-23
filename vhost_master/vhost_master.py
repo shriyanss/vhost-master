@@ -142,6 +142,8 @@ def main():
     parser.add_argument('-s', '--silent', action='store_true', help='Silent mode (boolean flag)')
     parser.add_argument('--discover-vhost', type=str, help='Discover which IP address has the given VHost')
     parser.add_argument('-b', '--bruteforce', action="store_true", help='Bruteforce using the given wordlist', default=False)
+    parser.add_argument('--skip-resolve', action="store_true", default=False, help='Skip resolving IP addresses. Rather, use file parsed from pipe as IP address list (should be used with -b/--bruteforce) (-d/--domain required)')
+    parser.add_argument('-d', '--domain', type=str, help='Target domain (required with --skip-resolve)')
     parser.add_argument('-c', '--conditions', type=str, help='Conditions to consider if a valid VHost exists. See https://github.com/shriyanss/vhost-master/match_conditions.md', default="status!=404")
     parser.add_argument('-w', '--wordlist', type=str, help='Wordlist to use (required with -b/--bruteforce)')
     parser.add_argument('--absolute-wordlist', action="store_true", help='Absolute values given in the wordlist', default=False)
@@ -167,6 +169,15 @@ def main():
     if args.bruteforce == True and args.discover_vhost != None:
         print("Bruteforce flag -b/--bruteforce and --discover-vhost can't be used together")
         exit(1)
+    
+    # checks for --skip-resolve flag
+    if args.skip_resolve == True:
+        if args.domain == None:
+            print("Domain is required with --skip-resolve flag...")
+            exit(1)
+        elif args.bruteforce == False:
+            print("-b/--bruteforce is required with --skip-resolve flag")
+            exit(1)
     
     # check if the -b flag is specified, then the wordlist (-w) should be also specified
     if args.bruteforce:
@@ -203,44 +214,52 @@ def main():
     # get the IP addresses
     global ip_info
     ip_info = {}
-    threads = []
-    ip_resolver = IPResolve()
 
-    for i in range(args.resolver_runs):
-    # loop through hostnames
-        for hostname in targets:
-            # IPResolve.resolve(hostname)
-            thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
-            thread.start()
-            threads.append(thread)
+    if args.skip_resolve == False:
+        threads = []
+        ip_resolver = IPResolve()
 
-            # Wait for the number of active threads to be less than the maximum allowed threads
-            while threading.active_count() > args.threads:
-                pass
-            # thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
-            # thread.start()
-            # while True:
-            #     if threading.active_count() > args.threads:
-            #         pass
-            #     else:
-            #         threads.append(thread)
-            #         break
-            # ip = get_ip_address(hostname)
-            # try:
-            #     ip_info[ip].append(hostname) if ip is not None else None
-            # except:
-            #     ip_info[ip] = []
-            #     ip_info[ip].append(hostname) if ip is not None else None
+        for i in range(args.resolver_runs):
+        # loop through hostnames
+            for hostname in targets:
+                # IPResolve.resolve(hostname)
+                thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
+                thread.start()
+                threads.append(thread)
+
+                # Wait for the number of active threads to be less than the maximum allowed threads
+                while threading.active_count() > args.threads:
+                    pass
+                # thread = threading.Thread(target=ip_resolver.resolve, args=(hostname,))
+                # thread.start()
+                # while True:
+                #     if threading.active_count() > args.threads:
+                #         pass
+                #     else:
+                #         threads.append(thread)
+                #         break
+                # ip = get_ip_address(hostname)
+                # try:
+                #     ip_info[ip].append(hostname) if ip is not None else None
+                # except:
+                #     ip_info[ip] = []
+                #     ip_info[ip].append(hostname) if ip is not None else None
+            
+            # get the IP addresses who have more than 1 hostname
         
-        # get the IP addresses who have more than 1 hostname
-    
-    for thread in threads:
-        thread.join()
+        for thread in threads:
+            thread.join()
 
-    multiple_hostnames_ips = []
-    for key in ip_info:
-        if len(ip_info[key]) > 1:
-            multiple_hostnames_ips.append({key: ip_info[key]})
+        multiple_hostnames_ips = []
+        for key in ip_info:
+            if len(ip_info[key]) > 1:
+                multiple_hostnames_ips.append({key: ip_info[key]})
+    else:
+        multiple_hostnames_ips = []
+        for add_ip_address in targets:
+            ip_info[add_ip_address] = []
+            multiple_hostnames_ips.append({add_ip_address: []})
+
     
     # print IP addresses which have more than one hostname
     print_output(multiple_hostnames_ips, args.silent)
@@ -260,10 +279,10 @@ def main():
         # data structure for multiple_hostnames_ips:-
         # [{ip: []}, {ip: []}]
         for ip in multiple_hostnames_ips:
-            ip_address = (list(ip.keys())[0])
+            add_ip_address = (list(ip.keys())[0])
             protocols = (args.protocol).split(",")
             # get the domain for the target
-            domain = Utility.get_domain_from_subdomain(ip[ip_address][0])
+            domain = Utility.get_domain_from_subdomain(ip[add_ip_address][0])
 
             # check if scanning for both port 80 and 443 is enabled
             # creates 2 vars, both_major_ports_enabled and both_major_ports_open
@@ -272,8 +291,8 @@ def main():
 
                 # check is port 80 and 443 are open on IP address
                 try:
-                    r_http = requests.get(f"http://{ip_address}:80/", verify=False)
-                    r_https = requests.get(f"https://{ip_address}:443/", verify=False)
+                    r_http = requests.get(f"http://{add_ip_address}:80/", verify=False)
+                    r_https = requests.get(f"https://{add_ip_address}:443/", verify=False)
                     both_major_ports_open = True
                 except:
                     # print(e)
@@ -292,8 +311,8 @@ def main():
 
                 # start bruteforce on port 80 and 443
                 # print(f"--force-all-ports enabled. Starting bruteforce on port 80 and 443")
-                bruteforcer.start(host=ip_address, port=80, protocol="http")
-                bruteforcer.start(host=ip_address, port=443, protocol="https")
+                bruteforcer.start(host=add_ip_address, port=80, protocol="http")
+                bruteforcer.start(host=add_ip_address, port=443, protocol="https")
 
             # remove port 80 and 443 if both are open and enabled for testing
             # this is to reduce scan time
@@ -313,7 +332,7 @@ def main():
 
                     # if port 80 and 443 both are open, skip http:80
                     # print(f"{protocol}://{ip_address}:{port}/")
-                    bruteforcer.start_single_host(host=ip_address, port=port, protocol=protocol)
+                    bruteforcer.start_single_host(host=add_ip_address, port=port, protocol=protocol)
 
     # feature to bruteforce VHosts
     if args.bruteforce == True:
@@ -334,10 +353,13 @@ def main():
         # data structure for multiple_hostnames_ips:-
         # [{ip: []}, {ip: []}]
         for ip in multiple_hostnames_ips:
-            ip_address = (list(ip.keys())[0])
+            add_ip_address = (list(ip.keys())[0])
             protocols = (args.protocol).split(",")
             # get the domain for the target
-            domain = Utility.get_domain_from_subdomain(ip[ip_address][0])
+            if args.domain == None:
+                domain = Utility.get_domain_from_subdomain(ip[add_ip_address][0])
+            else:
+                domain = args.domain
 
             # check if scanning for both port 80 and 443 is enabled
             # creates 2 vars, both_major_ports_enabled and both_major_ports_open
@@ -346,8 +368,8 @@ def main():
 
                 # check is port 80 and 443 are open on IP address
                 try:
-                    r_http = requests.get(f"http://{ip_address}:80/", verify=False)
-                    r_https = requests.get(f"https://{ip_address}:443/", verify=False)
+                    r_http = requests.get(f"http://{add_ip_address}:80/", verify=False)
+                    r_https = requests.get(f"https://{add_ip_address}:443/", verify=False)
                     both_major_ports_open = True
                 except:
                     # print(e)
@@ -366,8 +388,8 @@ def main():
 
                 # start bruteforce on port 80 and 443
                 # print(f"--force-all-ports enabled. Starting bruteforce on port 80 and 443")
-                bruteforcer.start(host=ip_address, port=80, protocol="http")
-                bruteforcer.start(host=ip_address, port=443, protocol="https")
+                bruteforcer.start(host=add_ip_address, port=80, protocol="http")
+                bruteforcer.start(host=add_ip_address, port=443, protocol="https")
 
             # remove port 80 and 443 if both are open and enabled for testing
             # this is to reduce scan time
@@ -387,7 +409,7 @@ def main():
 
                     # if port 80 and 443 both are open, skip http:80
                     # print(f"{protocol}://{ip_address}:{port}/")
-                    bruteforcer.start(host=ip_address, port=port, protocol=protocol)
+                    bruteforcer.start(host=add_ip_address, port=port, protocol=protocol)
                 
 
 if __name__ == '__main__':
