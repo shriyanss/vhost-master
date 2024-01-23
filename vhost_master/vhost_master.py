@@ -18,6 +18,8 @@ from .utility import Utility
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+version = "0.0.3"
+
 class BruteForcer:
     def __init__(self, wordlist, domain, max_threads) -> None:
         self.wordlist = wordlist
@@ -51,6 +53,32 @@ class BruteForcer:
         for thread in threads:
             thread.join()
 
+    def start_single_host(self, host, port, protocol):
+        target_url = f"{protocol}://{host}:{port}/"
+
+        # print(f"[i] Starting bruteforce on {target_url}\n    Domain: {self.domain}")
+        
+        threads = []
+        for line in wordlist_list:
+            line = line.replace('\n', '')
+
+            if absolute_wordlist == True:
+                vhost = line
+            else:
+                vhost = f"{line}"
+
+            # wait for active thread count to be less than max_threads
+            while True:
+                if threading.active_count() > self.max_threads:
+                    pass
+                else:
+                    thread = threading.Thread(target=vhost_exists, args=(target_url, vhost, conditions))
+                    thread.start()
+                    threads.append(thread)
+                    break
+        for thread in threads:
+            thread.join()
+
 class IPResolve():
     def __init__(self):
         pass
@@ -61,8 +89,6 @@ class IPResolve():
         except:
             ip_info[ip] = []
             ip_info[ip].append(hostname) if ip is not None else None
-
-version = "0.0.3"
 
 def get_ip_address(host):
     try:
@@ -114,6 +140,7 @@ def main():
 
     parser.add_argument('--resolver-runs', type=int, default=10, help='Number of times to run the resolver to increase the accuracy of the output (default=10)')
     parser.add_argument('-s', '--silent', action='store_true', help='Silent mode (boolean flag)')
+    parser.add_argument('--discover-vhost', type=str, help='Discover which IP address has the given VHost')
     parser.add_argument('-b', '--bruteforce', action="store_true", help='Bruteforce using the given wordlist', default=False)
     parser.add_argument('-c', '--conditions', type=str, help='Conditions to consider if a valid VHost exists. See https://github.com/shriyanss/vhost-master/match_conditions.md', default="status!=404")
     parser.add_argument('-w', '--wordlist', type=str, help='Wordlist to use (required with -b/--bruteforce)')
@@ -136,6 +163,10 @@ def main():
     # print banner if not silent
     if not args.silent:
         banner()
+    
+    if args.bruteforce == True and args.discover_vhost != None:
+        print("Bruteforce flag -b/--bruteforce and --discover-vhost can't be used together")
+        exit(1)
     
     # check if the -b flag is specified, then the wordlist (-w) should be also specified
     if args.bruteforce:
@@ -215,8 +246,77 @@ def main():
     print_output(multiple_hostnames_ips, args.silent)
     print()
 
-    if args.bruteforce == True:
+    if args.discover_vhost != None:
+        print(f"{Fore.YELLOW}[i] Discovering VHost {args.discover_vhost} on {len(multiple_hostnames_ips)} IP addresses {Style.RESET_ALL}")
 
+        if args.force_all_ports == False:
+            print(f"{Fore.YELLOW}[i] Will prioritize https:443 over http:80 if both are open. Test both with --force-all-ports{Style.RESET_ALL}")
+        
+        global wordlist_list
+        wordlist_list = [args.discover_vhost]
+        # bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+
+        # loop through multiple_hostname_ips
+        # data structure for multiple_hostnames_ips:-
+        # [{ip: []}, {ip: []}]
+        for ip in multiple_hostnames_ips:
+            ip_address = (list(ip.keys())[0])
+            protocols = (args.protocol).split(",")
+            # get the domain for the target
+            domain = Utility.get_domain_from_subdomain(ip[ip_address][0])
+
+            # check if scanning for both port 80 and 443 is enabled
+            # creates 2 vars, both_major_ports_enabled and both_major_ports_open
+            if "http:80" in protocols and "https:443" in protocols:
+                both_major_ports_enabled = True
+
+                # check is port 80 and 443 are open on IP address
+                try:
+                    r_http = requests.get(f"http://{ip_address}:80/", verify=False)
+                    r_https = requests.get(f"https://{ip_address}:443/", verify=False)
+                    both_major_ports_open = True
+                except:
+                    # print(e)
+                    both_major_ports_open = False
+            else:
+                both_major_ports_enabled = False
+            
+            # test for port 80 and 443 initially and remove them
+            # given condition it is to be tested, they are open and force all port is enabled
+            if both_major_ports_enabled == True and both_major_ports_open == True and args.force_all_ports == True:
+                protocols.remove("http:80")
+                protocols.remove("https:443")
+
+                # initiate bruteforce on port 80 and 443
+                bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+
+                # start bruteforce on port 80 and 443
+                # print(f"--force-all-ports enabled. Starting bruteforce on port 80 and 443")
+                bruteforcer.start(host=ip_address, port=80, protocol="http")
+                bruteforcer.start(host=ip_address, port=443, protocol="https")
+
+            # remove port 80 and 443 if both are open and enabled for testing
+            # this is to reduce scan time
+            # or simply prioritize port 443 over port 80
+                
+
+            elif both_major_ports_enabled == True and both_major_ports_open == True and args.force_all_ports == False:
+                # pass
+                protocols.remove("http:80")
+                # protocols.remove("https:443")
+            
+            if len(protocols) > 0:
+                for pp in protocols:
+                    protocol, port = pp.split(":")[0], pp.split(":")[1]
+                    # print(f"\n[i] Testing {protocol}:{port} on {ip_address}")
+                    bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+
+                    # if port 80 and 443 both are open, skip http:80
+                    # print(f"{protocol}://{ip_address}:{port}/")
+                    bruteforcer.start_single_host(host=ip_address, port=port, protocol=protocol)
+
+    # feature to bruteforce VHosts
+    if args.bruteforce == True:
         if args.force_all_ports == False:
             print(f"{Fore.YELLOW}[i] Will prioritize https:443 over http:80 if both are open. Test both with --force-all-ports{Style.RESET_ALL}")
         wordlist_list = []
