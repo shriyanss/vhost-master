@@ -18,7 +18,7 @@ from .utility import Utility
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-version = "0.0.3"
+version = "0.0.4"
 
 class BruteForcer:
     def __init__(self, wordlist, domain, max_threads) -> None:
