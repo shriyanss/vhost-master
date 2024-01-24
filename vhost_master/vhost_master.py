@@ -148,7 +148,7 @@ def main():
     parser.add_argument('-w', '--wordlist', type=str, help='Wordlist to use (required with -b/--bruteforce)')
     parser.add_argument('--absolute-wordlist', action="store_true", help='Absolute values given in the wordlist', default=False)
     parser.add_argument('-t', "--threads", type=int, help='Number of threads (default=30)', default=30)
-    parser.add_argument('-p', '--protocol', type=str, help='Protocol to use (default="http:80,https:443"', default="http:80,https:443")
+    parser.add_argument('-p', '--protocol', type=str, help='Protocol to use (default="http:80,https:443")', default="http:80,https:443")
     parser.add_argument('--force-all-ports', action="store_true", default=False, help='If both http:80 & https:443 are open, tool will skip http:80 and show results for https:443. Use this flag to disable it')
     args = parser.parse_args()
     targets = None
