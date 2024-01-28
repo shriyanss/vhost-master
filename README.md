@@ -1,4 +1,4 @@
-# vhost_master v0.0.4
+# vhost_master v0.0.3
 Command line utility to hunt for Virtual Hosts
 
 ## Table of contents
