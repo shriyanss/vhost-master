@@ -1,4 +1,4 @@
-# vhost_master v0.0.3
+# vhost_master v0.0.4
 Command line utility to hunt for Virtual Hosts
 
 ## Table of contents
@@ -21,18 +21,23 @@ Command line utility to hunt for Virtual Hosts
 1. Generate wordlists
 1. Analyze responses to make bruteforcing VHosts easier
 
+Other features requested can be found on the [issues tab](https://github.com/shriyanss/vhost-master/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement)
+
 ## Installation
 The tool can be installed with the following command:-
 
 ### Using `pip` (recommeded)
-You can install this tool by simply running the following command (not running as root might not be able to add it to path, so direct execution might not be possible):-
+You can install this tool by simply running the following command:-
 ```
-sudo pip3 install vhost-master
+pip3 install vhost-master
 ```
+
 OR
 ```
-sudo python3 -m pip install vhost-master
+python3 -m pip install vhost-master
 ```
+
+**NOTE: If you are using Mac OS, consider installing it with sudo (tested with `macOS Sonoma`)**
 
 ### Manually using source
 Download and extract files from one of the releases from https://github.com/shriyanss/vhost-master/releases. Then,
@@ -70,24 +75,31 @@ Usage: cat subdomains.txt | vhost_master
 ```
 
 ```
-usage: vhost_master-runner.py [-h] [-s] [-b] [-c CONDITIONS] [-w WORDLIST] [-t THREADS] [-p PROTOCOL]
-                              [--force-all-ports]
+usage: vhost_master-runner.py [-h] [--resolver-runs RESOLVER_RUNS] [-s] [--discover-vhost DISCOVER_VHOST] [-b] [--skip-resolve] [-d DOMAIN] [-c CONDITIONS]
+                              [-w WORDLIST] [--absolute-wordlist] [-t THREADS] [-p PROTOCOL] [--force-all-ports]
 
 optional arguments:
   -h, --help            show this help message and exit
+  --resolver-runs RESOLVER_RUNS
+                        Number of times to run the resolver to increase the accuracy of the output (default=10)
   -s, --silent          Silent mode (boolean flag)
+  --discover-vhost DISCOVER_VHOST
+                        Discover which IP address has the given VHost
   -b, --bruteforce      Bruteforce using the given wordlist
+  --skip-resolve        Skip resolving IP addresses. Rather, use file parsed from pipe as IP address list (should be used with -b/--bruteforce) (-d/--domain
+                        required)
+  -d DOMAIN, --domain DOMAIN
+                        Target domain (required with --skip-resolve)
   -c CONDITIONS, --conditions CONDITIONS
-                        Conditions to consider if a valid VHost exists. See https://github.com/shriyanss/vhost-
-                        master/match_conditions.md
+                        Conditions to consider if a valid VHost exists. See https://github.com/shriyanss/vhost-master/match_conditions.md
   -w WORDLIST, --wordlist WORDLIST
                         Wordlist to use (required with -b/--bruteforce)
+  --absolute-wordlist   Absolute values given in the wordlist
   -t THREADS, --threads THREADS
                         Number of threads (default=30)
   -p PROTOCOL, --protocol PROTOCOL
-                        Protocol to use (default="http:80,https:443"
-  --force-all-ports     If both http:80 & https:443 are open, tool will skip http:80 and show results for https:443.
-                        Use this flag to disable it
+                        Protocol to use (default="http:80,https:443")
+  --force-all-ports     If both http:80 & https:443 are open, tool will skip http:80 and show results for https:443. Use this flag to disable it
 ```
 
 ## Examples
@@ -109,6 +121,11 @@ cat subdomains.txt | vhost_master -b -w wordlist.txt --conditions "status!=404,s
 In this example, if both port 80 and 443 are open, tool will skip port 80 and just scan 443. To scan both ports, use the flag `--force-all-ports`
 ```
 cat subdomains.txt | vhost_master -b -w wordlist.txt --conditions "status!=404,status!=400" --force-all-ports
+```
+
+If you want to discover which IP address has a given VHost, use the flag `--discover-vhost DISCOVER_VHOST`. E.g.
+```
+cat subdomains.txt | vhost_master --discover-vhost admin.target.com
 ```
 
 ## Social Links

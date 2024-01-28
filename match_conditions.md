@@ -1,4 +1,4 @@
-# vhost_master v0.0.3
+# vhost_master v0.0.4
 ## Conditions for matching a VHost
 - [Status Code](#status-code)
 
