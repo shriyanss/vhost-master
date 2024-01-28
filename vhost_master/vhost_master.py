@@ -118,11 +118,17 @@ def print_output(multiple_hostnames_ips, silent):
 
 def banner():
     latest_version = (requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version").text).replace('\n', '')
+    
     # https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version
+    # get the latest version
     if latest_version != version:
         status = f"{Fore.RED}Outdated. Latest: v{latest_version}{Style.RESET_ALL}"
     else:
         status = f"{Fore.GREEN}Latest{Style.RESET_ALL}"
+    
+    # get the message
+    message = (requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/message").text)
+
     print(f"""__     ___   _           _        __  __           _            
 \ \   / / | | | ___  ___| |_     |  \/  | __ _ ___| |_ ___ _ __ 
  \ \ / /| |_| |/ _ \/ __| __|____| |\/| |/ _` / __| __/ _ \ '__|
@@ -132,6 +138,7 @@ def banner():
 By {Fore.CYAN}@shriyanss{Style.RESET_ALL}
 https://github.com/shriyanss/vhost-master
 v{Fore.YELLOW}{version}{Style.RESET_ALL} ({status})
+{message}
 """)
 
 def main():
