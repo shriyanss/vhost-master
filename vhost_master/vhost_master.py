@@ -3,9 +3,8 @@ import sys
 import argparse
 import requests
 import os
-from time import sleep
 import threading
-import tldextract
+import subprocess
 
 from colorama import init, Fore, Style
 
@@ -116,8 +115,19 @@ def print_output(multiple_hostnames_ips, silent):
         for ip_dict in multiple_hostnames_ips:
             print(list(ip_dict.keys())[0])
 
+def check_update(latest_version):
+    if latest_version != version:
+        print(f"{Fore.YELLOW}[i]{Style.RESET_ALL} Updating to latest version...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "vhost-master"])
+        print(f"{Fore.GREEN}[i]{Style.RESET_ALL} Updated to the latest version...")
+        print(f"{Fore.YELLOW}Please rerun the tool again{Style.RESET_ALL}")
+        exit(1)
+
 def banner():
     latest_version = (requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version").text).replace('\n', '')
+
+    if no_update == False:
+        check_update(latest_version)
     
     # https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version
     # get the latest version
@@ -157,6 +167,7 @@ def main():
     parser.add_argument('-t', "--threads", type=int, help='Number of threads (default=30)', default=30)
     parser.add_argument('-p', '--protocol', type=str, help='Protocol to use (default="http:80,https:443")', default="http:80,https:443")
     parser.add_argument('--force-all-ports', action="store_true", default=False, help='If both http:80 & https:443 are open, tool will skip http:80 and show results for https:443. Use this flag to disable it')
+    parser.add_argument('--no-update', action="store_true", default=False, help="Don't update the tool if it is not the latest version")
     args = parser.parse_args()
     targets = None
 
@@ -168,6 +179,9 @@ def main():
 
     global absolute_wordlist
     absolute_wordlist = args.absolute_wordlist
+
+    global no_update
+    no_update = args.no_update
 
     # print banner if not silent
     if not args.silent:
