@@ -126,7 +126,8 @@ def check_update(latest_version):
 def banner():
     latest_version = (requests.get("https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version").text).replace('\n', '')
 
-    check_update(latest_version)
+    if no_update == False:
+        check_update(latest_version)
     
     # https://raw.githubusercontent.com/shriyanss/vhost-master/main/.info/version
     # get the latest version
@@ -178,6 +179,9 @@ def main():
 
     global absolute_wordlist
     absolute_wordlist = args.absolute_wordlist
+
+    global no_update
+    no_update = args.no_update
 
     # print banner if not silent
     if not args.silent:
