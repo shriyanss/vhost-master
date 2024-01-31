@@ -31,10 +31,22 @@ class BruteForcer:
         # print(f"[i] Starting bruteforce on {target_url}\n    Domain: {self.domain}")
         
         threads = []
-        with open(self.wordlist, 'r') as file:
-            for line in file:
-                line = line.replace('\n', '')
+        try:
+            wordlist = self.wordlist
+            # for line in file:
+            #     line = line.replace('\n', '')
+            #     wordlist.append(line)
+            
+            # print(wordlist)
+            # # for -n/--new flag
+            # if new == True:
+            #     for target in wordlist:
+            #         if target in wordlist:
+            #             print(True)
+            #             wordlist.remove(target)    
+            # print(wordlist)
 
+            for line in wordlist:
                 if absolute_wordlist == True:
                     vhost = line
                 else:
@@ -49,6 +61,10 @@ class BruteForcer:
                         thread.start()
                         threads.append(thread)
                         break
+        except Exception as e:
+            print(e)
+            exit(1)
+        
         for thread in threads:
             thread.join()
 
@@ -168,11 +184,15 @@ def main():
     parser.add_argument('-p', '--protocol', type=str, help='Protocol to use (default="http:80,https:443")', default="http:80,https:443")
     parser.add_argument('--force-all-ports', action="store_true", default=False, help='If both http:80 & https:443 are open, tool will skip http:80 and show results for https:443. Use this flag to disable it')
     parser.add_argument('--no-update', action="store_true", default=False, help="Don't update the tool if it is not the latest version")
+    parser.add_argument('-n', '--new', action='store_true', default=False, help="Display the new subdomains only. Remove the known ones")
     args = parser.parse_args()
     targets = None
 
     global silent
     silent = args.silent
+
+    global new
+    new = args.new
 
     global conditions
     conditions = ((args.conditions).replace(' ', '')).split(',')
@@ -223,6 +243,11 @@ def main():
             else:
                 print("Wordlist doesn't exist: " + args.wordlist)
                 exit(1)
+    
+    # if the -n/--new flag is used, bruteforce flag should be also used
+    if args.new == True and (args.bruteforce == False or args.absolute_wordlist == False):
+        print("-n/--new flag can be only used with -b/--bruteforce flag")
+        exit(1)
 
     # read data from pipe
     if not sys.stdin.isatty():
@@ -328,7 +353,7 @@ def main():
                 protocols.remove("https:443")
 
                 # initiate bruteforce on port 80 and 443
-                bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+                bruteforcer = BruteForcer(wordlist=wordlist_list, domain=domain, max_threads=args.threads)
 
                 # start bruteforce on port 80 and 443
                 # print(f"--force-all-ports enabled. Starting bruteforce on port 80 and 443")
@@ -349,7 +374,7 @@ def main():
                 for pp in protocols:
                     protocol, port = pp.split(":")[0], pp.split(":")[1]
                     # print(f"\n[i] Testing {protocol}:{port} on {ip_address}")
-                    bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+                    bruteforcer = BruteForcer(wordlist=wordlist_list, domain=domain, max_threads=args.threads)
 
                     # if port 80 and 443 both are open, skip http:80
                     # print(f"{protocol}://{ip_address}:{port}/")
@@ -369,6 +394,17 @@ def main():
                     pass
                 else:
                     wordlist_list.append(line.replace('\n', ''))
+        
+        # remove the existing subdomains if the -n/--new flag is enabled
+        if args.new == True:
+            for target in targets:
+                if target in wordlist_list:
+                    wordlist_list.remove(target)
+
+                # try:
+                #     wordlist_list.remove(target.replace('\n', ''))
+                # except:
+                #     pass
 
         # loop through multiple_hostname_ips
         # data structure for multiple_hostnames_ips:-
@@ -405,7 +441,7 @@ def main():
                 protocols.remove("https:443")
 
                 # initiate bruteforce on port 80 and 443
-                bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+                bruteforcer = BruteForcer(wordlist=wordlist_list, domain=domain, max_threads=args.threads)
 
                 # start bruteforce on port 80 and 443
                 # print(f"--force-all-ports enabled. Starting bruteforce on port 80 and 443")
@@ -426,7 +462,7 @@ def main():
                 for pp in protocols:
                     protocol, port = pp.split(":")[0], pp.split(":")[1]
                     # print(f"\n[i] Testing {protocol}:{port} on {ip_address}")
-                    bruteforcer = BruteForcer(wordlist=args.wordlist, domain=domain, max_threads=args.threads)
+                    bruteforcer = BruteForcer(wordlist=wordlist_list, domain=domain, max_threads=args.threads)
 
                     # if port 80 and 443 both are open, skip http:80
                     # print(f"{protocol}://{ip_address}:{port}/")
