@@ -27,3 +27,4 @@ class Utility:
         else:
             color = ""
         print(f"    {color}Status: {request.status_code}{Style.RESET_ALL}")
+        print(f"    {Fore.GREEN}Content-Length:{Style.RESET_ALL} {len(request.text)}")

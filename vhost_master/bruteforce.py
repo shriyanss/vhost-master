@@ -17,6 +17,7 @@ def vhost_exists(url, vhost, conditions):
 
         # check conditions
         for condition in conditions:
+            
             # check status code
             if condition.startswith("status"):
                 condition_status = int((re.findall(r"\d+", condition))[0])
@@ -28,6 +29,29 @@ def vhost_exists(url, vhost, conditions):
                     if r.status_code == condition_status:
                         num_conditions += 1
                         # exists = True
+            
+            # check content length
+            elif condition.startswith("content_length"):
+                if '-' in condition:
+                    # get the low and the high for the range
+                    ranges = re.findall(r'[0-9]+\-[0-9]+', condition)[0]
+                    ranges = ranges.split('-')
+                    # ranges becomes an array [low, high]
+                    if ranges[0] < len(r.text) < ranges[1]:
+                        if "==" in condition:
+                            num_conditions += 1
+                        elif "!=" in condition:
+                            num_conditions += 1
+                        else:
+                            pass
+                else:
+                    if len(r.text) == int(re.findall(r'[0-9]+', condition)[0]):
+                        if "==" in condition:
+                            num_conditions += 1
+                        elif "!=" in condition:
+                            num_conditions += 1
+                        else:
+                            pass
         
         # if exists == True:
         #     Utility.print_vhost_exists(vhost=vhost, request=r, url=url)
